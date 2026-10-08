@@ -4,32 +4,38 @@ const features = [
   {
     n: '01',
     t: 'Find broken workloads',
-    d: 'CrashLoopBackOff with the backoff window, OOMKilled with the limit as evidence, ImagePullBackOff with the registry error, restart loops.',
+    code: 'pod_oom_killed · pod_crashloop_backoff',
+    d: 'CrashLoopBackOff with the backoff window, OOMKilled with the memory limit as evidence, ImagePullBackOff with the registry error, restart loops.',
   },
   {
     n: '02',
     t: 'Explain scheduling failures',
+    code: 'pod_pending',
     d: 'Pending pods the scheduler cannot place — requests vs capacity, taints, tolerations, affinity and node constraints.',
   },
   {
     n: '03',
     t: 'Trace service problems',
+    code: 'service_no_endpoints · ingress_no_backends',
     d: 'Services whose selector matches no pods, broken selectors, unhealthy backends, ingresses pointing at missing or endpoint-less services.',
   },
   {
     n: '04',
     t: 'Inspect deployments',
+    code: 'deployment_unavailable · deployment_rollout_stalled',
     d: 'Unavailable replicas, rollouts past their progress deadline, old ReplicaSets still running beside the newest.',
   },
   {
     n: '05',
     t: 'Understand cluster pressure',
+    code: 'node_pressure · pod_probe_failing',
     d: 'Nodes under memory/disk/PID pressure, failing probes (sustained only), pending PVCs, volume mount failures, failed Jobs and CronJobs.',
   },
   {
     n: '06',
     t: 'Built for humans and agents',
-    d: 'Readable terminal output with evidence per finding, versioned JSON (schema 1.0.0), exit codes for CI, MCP tools for agents.',
+    code: 'schema 1.0.0 · exit 0/1/2/3/64',
+    d: 'Readable terminal output with evidence per finding, versioned JSON, exit codes for CI, MCP tools for agents.',
   },
 ];
 
@@ -38,8 +44,12 @@ export const FeatureList: React.FC = () => (
     {features.map((f) => (
       <article key={f.n}>
         <div className="n">{f.n}</div>
-        <h3>{f.t}</h3>
-        <p>{f.d}</p>
+        <div>
+          <h3>
+            {f.t} <code>{f.code}</code>
+          </h3>
+          <p>{f.d}</p>
+        </div>
       </article>
     ))}
   </div>

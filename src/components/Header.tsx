@@ -40,6 +40,20 @@ export const GhPill: React.FC<{ stars?: string | null }> = ({ stars = null }) =>
 );
 
 export const BrandHero: React.FC = () => {
+  return (
+    <div className="brand-hero">
+      <span className="brand-logo">
+        <KubotMark size={72} />
+      </span>
+      <div className="brand-name">
+        <span className="bdot" />
+        kubot
+      </div>
+    </div>
+  );
+};
+
+export const Navbar: React.FC = () => {
   const [stars, setStars] = useState<string | null>(null);
   useEffect(() => {
     fetch('https://api.github.com/repos/kubotdev/kubot')
@@ -50,17 +64,21 @@ export const BrandHero: React.FC = () => {
       .catch(() => undefined);
   }, []);
   return (
-    <div className="brand-hero">
-      <span className="brand-logo">
-        <KubotMark size={72} />
-      </span>
-      <div className="brand-name">
-        <span className="bdot" />
-        kubot
-      </div>
-      <div>
+    <header className="site-nav">
+      <div className="wrap nav-inner">
+        <a className="nav-brand" href="#top" aria-label="kubot home">
+          <KubotMark size={22} />
+          <span>kubot</span>
+          <span className="nav-status">read-only · open source</span>
+        </a>
+        <nav className="nav-links" aria-label="primary">
+          <a href="#how">How it works</a>
+          <a href="#features">Features</a>
+          <a href="#mcp">MCP</a>
+          <a href="https://github.com/kubotdev/kubot/tree/main/docs">Docs</a>
+        </nav>
         <GhPill stars={stars} />
       </div>
-    </div>
+    </header>
   );
 };

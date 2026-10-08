@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrandHero, GhPill } from './components/Header';
+import { BrandHero, Navbar } from './components/Header';
 import { TerminalDemo } from './components/TerminalDemo';
 import { InstallBlock } from './components/InstallBlock';
 import { ArchitectureDiagram } from './components/ArchitectureDiagram';
@@ -8,6 +8,7 @@ import { MCPSection, FinalCTA, Footer } from './components/Misc';
 
 export const App: React.FC = () => (
   <div id="top">
+    <Navbar />
     <div className="wrap">
       <BrandHero />
       <div className="center">
@@ -34,14 +35,6 @@ export const App: React.FC = () => (
           </p>
           <div style={{ height: 26 }} />
           <InstallBlock />
-          <nav className="linkrow" aria-label="page">
-            <a href="#how">How it works</a>
-            <a href="#mcp">MCP</a>
-            <a href="#features">Features</a>
-            <a href="https://github.com/kubotdev/kubot/tree/main/docs">Docs</a>
-            <a href="https://github.com/kubotdev/kubot">GitHub</a>
-            <a href="https://github.com/kubotdev/kubot/blob/main/CHANGELOG.md">Changelog</a>
-          </nav>
           <div className="cloudrow">
             <strong>Works with any Kubernetes:</strong>
             <div>
@@ -102,9 +95,6 @@ export const App: React.FC = () => (
       <section className="block" id="cta">
         <div className="wrap">
           <FinalCTA />
-          <div className="center" style={{ marginTop: 44 }}>
-            <GhPill />
-          </div>
         </div>
       </section>
     </main>
