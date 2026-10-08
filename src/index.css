@@ -68,7 +68,7 @@ a { color: inherit; }
 
 /* ---------- animated sailing mark ---------- */
 .sailing { position: relative; margin: 0 auto; }
-.sailing-inner { position: relative; width: 1024px; height: 1024px; transform-origin: top left; }
+.sailing-inner { position: relative; transform-origin: top left; }
 .sailing-inner img { position: absolute; display: block; }
 .sailing-eye { transition: transform 0.12s ease-out; }
 .sailing-helm { position: absolute; animation: helm-steer 11s ease-in-out infinite; }
@@ -150,14 +150,19 @@ a { color: inherit; }
 .term-body {
   background: var(--term-bg-inner);
   padding: 18px 20px;
-  height: 430px;
+  height: 510px;
   overflow: hidden;
   font-size: 12.8px; line-height: 1.65;
   text-align: left;
 }
-@media (max-width: 640px) { .term-body { height: 470px; font-size: 11.8px; overflow-x: auto; } }
+@media (max-width: 640px) {
+  /* narrow screens: wrap like a real terminal instead of scrolling;
+     the body stays fixed-height with no scrollbars, ever */
+  .term-body { height: 660px; font-size: 10.5px; line-height: 1.6; }
+  .term-body pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+}
 .term-body pre { margin: 0; white-space: pre; font-family: var(--mono); }
-.term-scroll { overflow-x: auto; }
+.term-scroll { overflow: hidden; }
 .t-prompt { color: var(--term-prompt); }
 .t-cmd { color: #f2f4f8; font-weight: 700; }
 .t-normal { color: var(--term-normal); }

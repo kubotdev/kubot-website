@@ -30,119 +30,212 @@ export interface Demo {
 
 const blank: Line = [{ t: ' ', c: 't-normal' }];
 
+// Demo outputs mirror the real CLI (kind-kubot-prod). Wording is verbatim;
+// only over-long tails are trimmed so every line fits the fixed terminal
+// (no scrollbars, ever) — like the real CLI cutting columns to fit -width.
+const conn = (): Line => [
+  g('connected'),
+  m(' · '),
+  b('kind-kubot-prod'),
+  m(' · all namespaces · read-only'),
+];
+
+// --- bordered lipgloss-style tables -------------------------------------
+const padR = (s: string, w: number): string => {
+  const r = [...s];
+  if (r.length > w) return r.slice(0, w - 1).join('') + '…';
+  return s + ' '.repeat(w - r.length);
+};
+// cutMiddle keeps head+tail like the real CLI: pod names carry the workload
+// up front and the unique id at the end, the hash in the middle is expendable
+const cutMid = (s: string, w: number): string => {
+  const r = [...s];
+  if (r.length <= w) return s + ' '.repeat(w - r.length);
+  const keep = w - 1;
+  const head = Math.floor((keep * 2) / 3);
+  return r.slice(0, head).join('') + '…' + r.slice(r.length - (keep - head)).join('');
+};
+const hline = (w: number[], l: string, j: string, rr: string): Line => [
+  { t: l + w.map((x) => '─'.repeat(x + 2)).join(j) + rr, c: 't-muted' },
+];
+const trow = (cells: string[], w: number[], cls: SegClass = 't-normal'): Line => [
+  { t: '│ ' + cells.join(' │ ') + ' │', c: cls },
+];
+
+const EV_W = [10, 28, 16, 5, 13];
+const evHeader = (): Line[] => [
+  hline(EV_W, '╭', '┬', '╮'),
+  trow(['NS', 'OBJECT', 'REASON', 'COUNT', 'MESSAGE'].map((c, i) => padR(c, EV_W[i])), EV_W, 't-muted'),
+  hline(EV_W, '├', '┼', '┤'),
+];
+const evRow = (ns: string, obj: string, reason: string, count: string, msg: string): Line => {
+  const cells = [padR(ns, 10), cutMid(obj, 28), padR(reason, 16)];
+  const tail = padR(msg, 13);
+  return [
+    { t: '│ ' + cells.join(' │ ') + ' │ ', c: 't-normal' },
+    { t: padR(count, 5), c: 't-amber' },
+    { t: ' │ ' + tail + ' │', c: 't-normal' },
+  ];
+};
+const evEnd = (): Line[] => [hline(EV_W, '╰', '┴', '╯')];
+
+const RES_W = [20, 12, 7, 7, 9, 7, 4];
+const resHeader = (): Line[] => [
+  hline(RES_W, '╭', '┬', '╮'),
+  trow(['POD', 'CONTAINER', 'CPU-REQ', 'MEM-REQ', 'MEM-LIMIT', 'MEM-USE', 'USE%'].map((c, i) => padR(c, RES_W[i])), RES_W, 't-muted'),
+  hline(RES_W, '├', '┼', '┤'),
+];
+const resRow = (pod: string, c: string, cpu: string, mr: string, ml: string, mu: string, up: string): Line =>
+  trow([cutMid(pod, 20), padR(c, 12), padR(cpu, 7), padR(mr, 7), padR(ml, 9), padR(mu, 7), padR(up, 4)], RES_W);
+const resEnd = (): Line[] => [hline(RES_W, '╰', '┴', '╯')];
+
 export const demos: Record<string, Demo> = {
   kubot: {
     cmd: 'kubot',
     title: 'kubot — 96×32',
     lines: [
-      [m('Kubernetes diagnostics for humans & agents. Read-only.')],
+      [n('Kubernetes diagnostics for humans and AI agents')],
       blank,
       [m('Usage:')],
-      [n('  inspect [workload]    full health report')],
-      [n('  why <workload>        diagnosis for one workload')],
-      [n('  events                warning events, most repeated first')],
-      [n('  resources             requests / limits / usage per container')],
-      [n('  networking            service, probe and ingress findings')],
-      [n('  check                 CI gate (exit 2 when critical)')],
-      [n('  inspect --json        machine-readable report (schema 1.0.0)')],
-      [n('  mcp                   serve findings to agents over MCP')],
+      [n('  kubot [command]')],
       blank,
-      [m('Flags: --kubeconfig  --context  -n/--namespace  --no-color')],
+      [m('Available Commands:')],
+      [n('  ask         Ask about cluster health, answered from deterministic findings')],
+      [n('  check       CI gate: exit non-zero when problems meet --fail-on')],
+      [n('  events      Show Warning events related to unhealthy workloads')],
+      [n('  explain     Print the deterministic report plus an AI reading of it')],
+      [n('  inspect     Inspect the cluster or one workload')],
+      [n('  mcp         Run as an MCP server over stdio (for AI agents like Claude)')],
+      [n('  networking  Check Service and endpoint problems')],
+      [n('  resources   Per-container requests, limits, and live usage, plus resource problems')],
+      [n('  why         Explain why a workload is unhealthy')],
+      blank,
+      [m('Flags: --config, --context, --kubeconfig, -n/--namespace, --timeout, --no-color')],
     ],
   },
   'kubot inspect': {
     cmd: 'kubot inspect',
     title: 'kubot — inspect — 96×32',
     lines: [
-      [m('connected · kind-kubot-demo · all namespaces · read-only')],
-      blank,
+      conn(),
       [m('Cluster health: '), r('0/100')],
-      blank,
       [r('CRITICAL')],
-      [r('● '), b('deployment/bad-image'), m('  unavailable 0/1')],
-      [r('● '), b('deployment/crashy'), m('  unavailable 0/1')],
-      [r('● '), b('pod/payments-api-68ffdf658-m2wq4'), m('  OOMKilled 137')],
-      blank,
+      [r('● '), b('deployment/checkout-api'), m(' (production)')],
+      [n('    Deployment has 3 unavailable replica(s) (ready 0/3)')],
+      [r('● '), b('pod/billing-worker-5cbb5b98dc-zrr89'), m(' (production)')],
+      [n('    Container "worker" was OOMKilled (exit 137)')],
+      [r('● '), b('pod/checkout-api-85566fcb9f-5ph2n'), m(' (production)')],
+      [n('    Container "api" cannot pull image "hashicorp/http-echo:0.2.9')],
+      [n('    9" (ImagePullBackOff)')],
       [a('WARNING')],
-      [a('● '), b('deployment/unready'), m('  rollout stuck')],
-      blank,
-      [m('1 failing rollout · 1 stuck · 1 OOMKill · checked pods, deploys, nodes')],
+      [a('● '), b('cronjob/nightly-reconcile'), m(' (production)')],
+      [n('    Latest run (nightly-reconcile-29858079) failed with no success since')],
+      [a('● '), b('deployment/checkout-api'), m(' (production)')],
+      [n('    Rollout exceeded its progress deadline and is stuck')],
+      [m('checked · daemonsets · deployments · events · ingresses · jobs · nodes · pods · services · statefulsets')],
+      [m('Details: kubot inspect --full   ·   Machine-readable: kubot inspect --json')],
     ],
   },
-  'kubot why payments-api': {
-    cmd: 'kubot why payments-api',
+  'kubot why search-api': {
+    cmd: 'kubot why search-api',
     title: 'kubot — why — 96×32',
     lines: [
-      [m('connected · kind-kubot-demo · read-only')],
+      conn(),
       blank,
-      [r('CRITICAL  '), b('pod/payments-api-68ffdf658-m2wq4'), m(' (default)')],
-      [n('  Container "api" was OOMKilled (exit 137)')],
+      [r('CRITICAL')],
+      [n('  '), b('deployment/search-api'), m(' (production)')],
+      [n('    Deployment has 2 unavailable replica(s) (ready 0/2)')],
       blank,
-      [m('  Evidence:')],
-      [n('    · container: api   · exit_code: 137')],
-      [n('    · memory_limit: 64Mi   · restart_count: 148')],
+      [m('    Evidence:')],
+      [n('      · available: 0 · desired: 2 · ready: 0 · unavailable: 2 · failing_pods: 2')],
       blank,
-      [m('  Recommendation:')],
-      [n('  Increase the memory limit or investigate usage.')],
+      [m('    Recommendation:')],
+      [n('      Inspect the failing pods; check rollout status and pod events.')],
       blank,
-      [m('ref: docs/findings/pod_oom_killed · verify: kubectl describe pod')],
+      [a('WARNING')],
+      [n('  '), b('deployment/search-api'), m(' (production)')],
+      [n('    Rollout exceeded its progress deadline and is stuck')],
+      [n('  '), b('service/search-api'), m(' (production)')],
+      [n('    Service has no ready endpoints')],
+      [m('checked · daemonsets · deployments · events · ingresses · jobs · nodes · pods · services · statefulsets')],
     ],
   },
   'kubot events': {
     cmd: 'kubot events',
     title: 'kubot — events — 96×32',
     lines: [
-      [m('COUNT  REASON            OBJECT')],
-      [n('  148  OOMKilling        pod/payments-api-68ffdf658-m2wq4')],
-      [n('   41  BackOff           pod/crashy-7f9c4b6d-2js8x')],
-      [n('   23  FailedScheduling  pod/pending-tall-0')],
-      [n('   12  ReplicaFailure    deployment/bad-image')],
-      [n('    9  Sync              ingress/web')],
+      conn(),
       blank,
-      [m('warning events by count, most repeated first')],
+      ...evHeader(),
+      evRow('production', 'pod/checkout-api-85566fcb9f-5ph2n', 'ImagePullBackOff', 'x41', 'Back-off pulling image'),
+      evRow('production', 'pod/billing-worker-5cbb5b98dc-zrr89', 'OOMKilling', 'x23', 'Container OOMKilled 137'),
+      evRow('production', 'pod/analytics-export', 'FailedScheduling', 'x17', '0/3 nodes: no memory'),
+      evRow('production', 'job/nightly-reconcile-29858079', 'BackoffLimitExceeded', 'x3', 'failed, no success'),
+      ...evEnd(),
       blank,
-      [m('1 failing image · 1 OOMKill · 1 unschedulable')],
-      blank,
-      [m('Next: kubot why payments-api')],
-      blank,
+      [m('warning events, most repeated first')],
     ],
   },
   'kubot resources': {
     cmd: 'kubot resources',
     title: 'kubot — resources — 96×32',
     lines: [
-      [m('CONTAINER  REQUEST  LIMIT  USAGE  STATE')],
-      [n('api        64Mi     64Mi   63Mi   '), r('OOMKilled x148')],
-      [n('worker     128Mi    256Mi  201Mi  '), a('79% of limit')],
-      [n('web        —        —      41Mi   '), a('no limit/req')],
-      [n('redis      128Mi    512Mi  190Mi  '), g('ok')],
+      conn(),
       blank,
-      [m('usage needs metrics-server; degrades without it')],
+      ...resHeader(),
+      resRow('kube-system/coredns-5d78d47d9d-74mvg', 'coredns', '100m', '70Mi', '170Mi', '14Mi', '9%'),
+      resRow('kube-system/etcd-kind-control-plane', 'etcd', '100m', '100Mi', 'none', '-', '-'),
+      resRow('production/admin-console-844756-mhdf4', 'web', '25m', '32Mi', '64Mi', '1Mi', '2%'),
+      resRow('production/analytics-export', 'export', '-', '-', 'none', '-', '-'),
+      resRow('production/billing-worker-5cbb5b98dc-zrr89', 'worker', '50m', '64Mi', '64Mi', '-', '-'),
+      resRow('production/checkout-api-85566fcb9f-5ph2n', 'api', '50m', '64Mi', '128Mi', '-', '-'),
+      resRow('production/db-migrate-42-zll82', 'migrate', '-', '-', 'none', '-', '-'),
+      resRow('production/feature-flags-77d579cffd-tckll', 'api', '-', '-', 'none', '-', '-'),
+      ...resEnd(),
       blank,
-      [m('1 critical · 2 warnings · 1 healthy')],
-      blank,
-      [m('Next: raise api limit, set web requests/limits')],
-      blank,
-      blank,
+      [m('8 of 50 rows shown')],
     ],
   },
-  help: {
-    cmd: 'help',
-    title: 'kubot — help — 96×32',
+  'kubot networking': {
+    cmd: 'kubot networking',
+    title: 'kubot — networking — 96×32',
     lines: [
-      [m('commands')],
+      conn(),
       blank,
-      [n('  kubot                   health summary')],
-      [n('  kubot inspect           every workload, in detail')],
-      [n('  kubot why <workload>    root cause for one workload')],
-      [n('  kubot events            warning events by count')],
-      [n('  kubot resources         requests, limits, usage')],
+      [a('WARNING')],
+      [a('● '), b('ingress/shop'), m(' (production)')],
+      [n('    Ingress class "nginx" matches no installed IngressClass')],
+      [a('● '), b('service/admin-console'), m(' (production)')],
+      [n('    Service selector matches no pods')],
+      [a('● '), b('service/checkout-api'), m(' (production)')],
+      [n('    Service has no ready endpoints')],
+      [a('● '), b('service/search-api'), m(' (production)')],
+      [n('    Service has no ready endpoints')],
       blank,
-      [m('Point kubot at any cluster: uses kubeconfig like kubectl')],
+      [m('checked · daemonsets · deployments · events · ingresses · jobs · nodes · pods · services · statefulsets')],
       blank,
-      [m('Read-only by default. No dashboard. Just diagnostics.')],
+      [m('Details: kubot inspect --full   ·   Machine-readable: kubot inspect --json')],
+    ],
+  },
+  'kubot ask "what\'s broken?"': {    cmd: 'kubot ask "what\'s broken?"',
+    title: 'kubot — ask — 96×32',
+    lines: [
+      [n('Send the findings to gemini (gemini-3.5-flash-lite) for explanation? [y/N] y')],
+      [m('────────────────────────────────────────────────────────────')],
+      [m('AI reading (gemini/gemini-3.5-flash-lite — verify before acting)')],
+      [n('The cluster status is critical, with multiple failing workloads')],
+      [n('preventing customers from paying.')],
       blank,
+      [n('deployment/checkout-api (production) has 3 unavailable replica(s) (ready 0/3)')],
+      [n('because container api cannot pull image hashicorp/http-echo:0.2.99 (ImagePullBackOff).')],
       blank,
+      [b('Why this is happening:')],
+      [n('Back-off pulling image: ErrImagePull — docker.io/hashicorp/http-echo:0.2.99: not found.')],
+      blank,
+      [b('Check next:')],
+      [n('Verify the image tag exists and registry credentials (imagePullSecrets) are correct.')],
+      blank,
+      [n('deployment/billing-worker (production): OOMKilled (exit 137) — raise the memory limit.')],
     ],
   },
 };
@@ -150,8 +243,9 @@ export const demos: Record<string, Demo> = {
 export const commandOrder = [
   'kubot',
   'kubot inspect',
-  'kubot why payments-api',
+  'kubot why search-api',
   'kubot events',
   'kubot resources',
-  'help',
+  'kubot networking',
+  'kubot ask "what\'s broken?"',
 ];

@@ -28,7 +28,7 @@ export const TerminalDemo: React.FC = () => {
           <span style={{ background: '#FBBF24' }} />
           <span style={{ background: '#34D399' }} />
         </div>
-        <span className="term-title">{demo.title}</span>
+        <span />
         <span />
       </div>
       <div className="term-body">

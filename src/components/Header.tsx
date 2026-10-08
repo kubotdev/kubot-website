@@ -19,7 +19,7 @@ export const GhPill: React.FC<{ stars?: string | null }> = ({ stars = null }) =>
 export const BrandHero: React.FC = () => {
   return (
     <div className="brand-hero">
-      <SailingKubot size={170} />
+      <SailingKubot size={200} />
       <div className="brand-name">
         <span className="bdot" />
         kubot
