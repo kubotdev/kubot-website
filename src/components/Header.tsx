@@ -1,28 +1,5 @@
 import React, { useEffect, useState } from 'react';
-
-export const KubotMark: React.FC<{ size?: number }> = ({ size = 72 }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 72 72"
-    role="img"
-    aria-label="kubot logo"
-  >
-    <circle cx="36" cy="36" r="36" fill="#fff" />
-    {/* helm ring */}
-    <circle cx="36" cy="36" r="21" fill="none" stroke="#0a0a0b" strokeWidth="4" />
-    <g stroke="#0a0a0b" strokeWidth="4" strokeLinecap="round">
-      <line x1="36" y1="9" x2="36" y2="19" />
-      <line x1="36" y1="53" x2="36" y2="63" />
-      <line x1="9" y1="36" x2="19" y2="36" />
-      <line x1="53" y1="36" x2="63" y2="36" />
-    </g>
-    {/* bot face */}
-    <rect x="25" y="28" width="22" height="16" rx="5" fill="#fff" stroke="#0a0a0b" strokeWidth="3.5" />
-    <ellipse cx="32" cy="36" rx="2.6" ry="4" fill="#0a0a0b" transform="rotate(-12 32 36)" />
-    <ellipse cx="40" cy="36" rx="2.6" ry="4" fill="#0a0a0b" transform="rotate(-12 40 36)" />
-  </svg>
-);
+import { SailingKubot } from './SailingKubot';
 
 const GhIcon: React.FC = () => (
   <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
@@ -42,9 +19,7 @@ export const GhPill: React.FC<{ stars?: string | null }> = ({ stars = null }) =>
 export const BrandHero: React.FC = () => {
   return (
     <div className="brand-hero">
-      <span className="brand-logo">
-        <KubotMark size={72} />
-      </span>
+      <SailingKubot size={170} />
       <div className="brand-name">
         <span className="bdot" />
         kubot
@@ -67,9 +42,8 @@ export const Navbar: React.FC = () => {
     <header className="site-nav">
       <div className="wrap nav-inner">
         <a className="nav-brand" href="#top" aria-label="kubot home">
-          <KubotMark size={22} />
+          <img src="./favicon.png" alt="kubot" width={24} height={24} />
           <span>kubot</span>
-          <span className="nav-status">read-only · open source</span>
         </a>
         <nav className="nav-links" aria-label="primary">
           <a href="#how">How it works</a>
