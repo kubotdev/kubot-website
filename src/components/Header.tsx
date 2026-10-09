@@ -42,7 +42,7 @@ export const Navbar: React.FC = () => {
     <header className="site-nav">
       <div className="wrap nav-inner">
         <a className="nav-brand" href="#top" aria-label="kubot home">
-          <img src="./favicon.png" alt="kubot" width={24} height={24} />
+          <img src="./kubot-icon-nobg.png" alt="kubot" width={24} height={24} />
           <span>kubot</span>
         </a>
         <nav className="nav-links" aria-label="primary">
