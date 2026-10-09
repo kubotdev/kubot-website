@@ -3,7 +3,8 @@ import React from 'react';
 const MCP_JSON = `{
   "mcpServers": {
     "kubot": {
-      "command": ["kubot", "--context", "my-cluster", "mcp"]
+      "command": "kubot",
+      "args": ["--context", "my-cluster", "mcp"]
     }
   }
 }`;
