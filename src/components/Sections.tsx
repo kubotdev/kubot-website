@@ -22,8 +22,8 @@ const features = [
   {
     n: '04',
     t: 'Inspect deployments',
-    code: 'deployment_unavailable · deployment_rollout_stalled',
-    d: 'Unavailable replicas, rollouts past their progress deadline, old ReplicaSets still running beside the newest.',
+    code: 'deployment_unavailable · deployment_rollout_stalled · deployment_rollout_recent',
+    d: 'Unavailable replicas, rollouts past their progress deadline, old ReplicaSets still running beside the newest, and what just rolled out in the last hour with its image change.',
   },
   {
     n: '05',
@@ -63,6 +63,7 @@ const capsLeft = [
   'Pending pod diagnosis',
   'Scheduling analysis',
   'Deployment rollout analysis',
+  'Recent rollout + image tracking',
   'Service endpoint analysis',
   'Ingress + TLS analysis',
 ];
@@ -74,6 +75,7 @@ const capsRight = [
   'Job / CronJob failure detection',
   'PVC + volume mount checks',
   'Resource configuration checks',
+  'Container logs + history diff',
   'Structured JSON output',
   'Exit codes + CI gate',
   'MCP support',

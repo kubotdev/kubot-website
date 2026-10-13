@@ -102,9 +102,11 @@ export const demos: Record<string, Demo> = {
       [m('Available Commands:')],
       [n('  ask         Ask about cluster health, answered from deterministic findings')],
       [n('  check       CI gate: exit non-zero when problems meet --fail-on')],
+      [n('  diff        Show what changed between two stored runs (offline)')],
       [n('  events      Show Warning events related to unhealthy workloads')],
       [n('  explain     Print the deterministic report plus an AI reading of it')],
       [n('  inspect     Inspect the cluster or one workload')],
+      [n('  logs        Show recent container logs for a workload\'s pods (read-only)')],
       [n('  mcp         Run as an MCP server over stdio (for AI agents like Claude)')],
       [n('  networking  Check Service and endpoint problems')],
       [n('  resources   Per-container requests, limits, and live usage, plus resource problems')],
@@ -238,6 +240,37 @@ export const demos: Record<string, Demo> = {
       [n('deployment/billing-worker (production): OOMKilled (exit 137) — raise the memory limit.')],
     ],
   },
+  'kubot logs checkout-api': {
+    cmd: 'kubot logs checkout-api',
+    title: 'kubot — logs — 96×32',
+    lines: [
+      conn(),
+      [n('--- production/checkout-api-85566fcb9f-5ph2n (container api)')],
+      [m('container is not running (ImagePullBackOff) — no current logs')],
+      [n('--- production/checkout-api-85566fcb9f-dgl7c (container api)')],
+      [m('container is not running (ImagePullBackOff) — no current logs')],
+      blank,
+      [m('pure GETs on pods/log: never exec, never attach')],
+    ],
+  },
+  'kubot diff --since 1h': {
+    cmd: 'kubot diff --since 1h',
+    title: 'kubot — diff — 96×32',
+    lines: [
+      [n('diff · kind-kubot-prod · kubot-diff-test')],
+      [m('2026-10-10 17:04 → 2026-10-10 17:06  ·  2m elapsed')],
+      blank,
+      [a('NEW (1)')],
+      [a('● '), b('pod/web-64fc786fb9-p5s66'), m(' (kubot-diff-test)')],
+      [n('    Container(s) missing settings: nginx (memory limit, cpu request, memory request)')],
+      blank,
+      [a('CHANGED IMAGES (1)')],
+      [a('● '), b('deployment/web'), m(' (kubot-diff-test)')],
+      [n('    nginx:1.27-alpine → nginx:1.28-alpine')],
+      blank,
+      [m('3 unchanged.')],
+    ],
+  },
 };
 
 export const commandOrder = [
@@ -248,4 +281,6 @@ export const commandOrder = [
   'kubot resources',
   'kubot networking',
   'kubot ask "what\'s broken?"',
+  'kubot logs checkout-api',
+  'kubot diff --since 1h',
 ];
